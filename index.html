@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SupplyTruth | China Factory & Supplier Verification</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #12100e;
+            --surface: #1c1815;
+            --surface-accent: #2c2522;
+            --accent: #e86e4e;
+            --accent-bright: #ff8a66;
+            --accent-glow: rgba(232, 110, 78, 0.15);
+            --text: #ffffff;
+            --text-muted: #a19692;
+            --border: rgba(255, 255, 255, 0.08);
+            --f-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --f-display: 'Inter', system-ui, -apple-system, sans-serif;
+            --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+            --transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Noise Texture */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--f-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4 {
+            font-family: var(--f-display);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+        }
+
+        /* Focus States */
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 4px;
+        }
+
+        .text-accent { color: var(--accent); }
+        .text-muted { color: var(--text-muted); }
+        .font-mono { font-family: var(--f-mono); font-size: 0.85rem; }
+
+        /* Layout Containers */
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 5%;
+        }
+
+        section {
+            padding: 8rem 0;
+            position: relative;
+        }
+
+        /* Navigation Dropdowns */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1.5rem 0;
+            transition: var(--transition);
+            border-bottom: 1px solid transparent;
+            background: transparent;
+            opacity: 0;
+            transform: translateY(-20px);
+            pointer-events: none;
+        }
+
+        nav.scrolled {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+            background: rgba(5, 5, 5, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 2001;
+            padding: 10px;
+            margin-right: -10px;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 28px;
+            height: 2px;
+            background: var(--text);
+            transition: var(--transition);
+        }
+
+        .menu-toggle.active span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+        .menu-toggle.active span:nth-child(2) { opacity: 0; }
+        .menu-toggle.active span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            text-transform: lowercase;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .tagline {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            align-items: center;
+        }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .nav-link-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0;
+            cursor: pointer;
+        }
+
+        .dropdown-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            transition: var(--transition);
+            pointer-events: none; /* Only mobile uses it as a button */
+        }
+
+        .nav-item:hover .dropdown-trigger {
+            color: var(--text);
+            transform: rotate(180deg);
+        }
+
+        .mobile-cta {
+            display: none;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            position: relative;
+        }
+
+        /* Glow effect for all nav links on hover */
+        .nav-links a:hover {
+            color: var(--text);
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: rgba(28, 24, 21, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            min-width: 240px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 20px rgba(212, 175, 55, 0.05);
+            z-index: 100;
+        }
+
+        .nav-item:hover .dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown a {
+            display: block;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.85rem;
+            border-radius: 2px;
+            text-shadow: none !important;
+            transition: background 0.3s ease, transform 0.3s ease, color 0.3s ease;
+        }
+
+        .dropdown a:hover {
+            background: rgba(212, 175, 55, 0.08);
+            color: var(--accent);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+            transform: translateX(8px);
+        }
+
+        /* Spotlight Effect */
+        #spotlight {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: radial-gradient(600px circle at var(--x) var(--y), rgba(212, 175, 55, 0.05), transparent 80%);
+            z-index: 9998;
+        }
+
+        /* Buttons - Redesigned for premium feel */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.1rem 2.6rem;
+            border-radius: 0; /* Brutalist sharp look */
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            transition: var(--transition);
+            cursor: pointer;
+            border: 1px solid transparent;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background-color: #ffffff;
+            color: #000000;
+            border: 1px solid #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-bright);
+            border-color: var(--accent-bright);
+            color: #000;
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 25px var(--accent-glow);
+        }
+
+        .btn-outline {
+            border-color: var(--border);
+            color: var(--text);
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--accent);
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow);
+        }
+
+        /* Hero Section - New Layout */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-start;
+            text-align: left;
+            padding-bottom: 8rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.50; /* Reduced to make text more readable */
+            filter: grayscale(10%) brightness(90%);
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .hero-video-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, rgba(18, 16, 14, 0.95) 10%, rgba(18, 16, 14, 0.4) 60%, transparent 100%),
+                        linear-gradient(to top, rgba(18, 16, 14, 1) 5%, transparent 40%);
+            z-index: 1;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin-left: 0;
+            text-align: left;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 7vw, 5.5rem);
+            margin-bottom: 1.5rem;
+            line-height: 1.05;
+            letter-spacing: -0.05em;
+            color: #ffffff;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .hero p {
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            color: #ffffff;
+            margin-bottom: 3rem;
+            max-width: 90%;
+            margin-left: 0;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .hero-btns {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Core Solutions */
+        .solutions-grid {
+            display: flex;
+            justify-content: center;
+            gap: 2.5rem;
+            margin-top: 6rem;
+            flex-wrap: wrap;
+        }
+
+        .solution-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            padding: 4rem 3rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .solution-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transform: translateX(-100%);
+            transition: 0.8s;
+        }
+
+        .solution-card:hover::after {
+            transform: translateX(100%);
+        }
+
+        .solution-card:hover {
+            border-color: rgba(212, 175, 55, 0.3);
+            background: rgba(255, 255, 255, 0.04);
+            transform: translateY(-15px);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.8);
+        }
+
+        .solution-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Infinite Slider */
+        .slider-container {
+            width: 100%;
+            overflow: hidden;
+            padding: 6rem 0;
+            background: var(--bg);
+            position: relative;
+        }
+
+        .slider-track {
+            display: flex;
+            gap: 2rem;
+            width: max-content;
+            animation: scroll 40s linear infinite;
+        }
+
+        .slider-item {
+            width: 300px;
+            height: 200px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            flex-shrink: 0;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .slider-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.5;
+            filter: grayscale(100%);
+            transition: var(--transition);
+        }
+
+        .slider-item:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .slider-item:hover img {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.1);
+        }
+
+        .slider-item span {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 1.5rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Process Card - Invincible Animation */
+        .step-card {
+            background: var(--surface);
+            padding: 3rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: center;
+        }
+
+        .step-card:hover {
+            border-color: var(--accent);
+            transform: scale(1.1) rotateZ(1deg);
+            z-index: 10;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow);
+        }
+
+        /* Premium Slideshow - Infinite Slow Slider */
+        .slideshow-section {
+            padding: 10rem 0;
+            background: var(--bg);
+            overflow: hidden;
+        }
+
+        .slideshow-wrapper {
+            width: 100%;
+            position: relative;
+            margin-top: 4rem;
+        }
+
+        .slideshow-track {
+            display: flex;
+            gap: 2rem;
+            width: max-content;
+            animation: slowScroll 35s linear infinite;
+        }
+
+        .slide {
+            flex: 0 0 450px;
+            height: 550px;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .slide:hover {
+            border-color: var(--accent);
+            transform: scale(1.02);
+            z-index: 2;
+        }
+
+        .slide video, .slide img, .slide iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+            transition: var(--transition);
+            border: 0;
+        }
+
+        .slide:hover video, .slide:hover img, .slide:hover iframe {
+            opacity: 1;
+        }
+
+        .slide-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 2.5rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .slide:hover .slide-overlay {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes slowScroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Trust Bar */
+        .trust-bar {
+            background: var(--surface);
+            padding: 3rem 0;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .trust-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .trust-item .value {
+            font-family: var(--f-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .trust-item .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        /* How It Works */
+        .how-it-works-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+
+        .step-card {
+            background: var(--surface);
+            padding: 3rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .step-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .step-num {
+            font-family: var(--f-display);
+            font-size: 4rem;
+            font-weight: 800;
+            opacity: 0.05;
+            position: absolute;
+            top: 1rem;
+            right: 2rem;
+        }
+
+        .step-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        /* Pricing */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+            margin-top: 6rem;
+        }
+
+        .price-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            padding: 4rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        }
+
+        .price-card.featured {
+            border-color: var(--accent);
+            background: rgba(232, 110, 78, 0.05);
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8), inset 0 0 0 1px var(--accent-glow);
+        }
+
+        .price-card.featured::before {
+            content: 'MOST POPULAR';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--accent);
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 0.5rem 1.5rem;
+            letter-spacing: 0.2em;
+            border-radius: 100px;
+        }
+
+        .price-amount {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            font-family: var(--f-display);
+        }
+
+        .price-amount span {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .price-features {
+            list-style: none;
+            margin-bottom: 2.5rem;
+            text-align: left;
+            flex-grow: 1;
+        }
+
+        .price-features li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .price-features li::before {
+            content: '✓';
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .addons-row {
+            margin-top: 4rem;
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .addon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        /* Report Content Cards */
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.5rem;
+            margin-top: 6rem;
+        }
+
+        .report-card {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            padding: 3.5rem 3rem;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: var(--transition);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+        }
+
+        .report-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(225deg, var(--accent) 50%, transparent 50%);
+            opacity: 0.1;
+            transition: var(--transition);
+        }
+
+        .report-card:hover::before {
+            opacity: 0.5;
+        }
+
+        .report-card:hover {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+
+        .report-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-glow);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+        }
+
+        /* Video Section */
+        .video-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 4rem auto 0;
+            aspect-ratio: 16/9;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-placeholder-text {
+            text-align: center;
+            z-index: 2;
+        }
+
+        .video-caption {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        /* Coverage */
+        .coverage-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 3rem;
+        }
+
+        .city-tag {
+            padding: 0.5rem 1.2rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .city-tag:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Form */
+        .form-container {
+            max-width: 800px;
+            margin: 4rem auto 0;
+            background: var(--surface);
+            padding: 4rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .form-group:hover {
+            transform: translateY(-2px);
+        }
+
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        .checkbox-group {
+            flex-direction: row;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            padding: 1rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .checkbox-group label {
+            text-transform: none;
+            letter-spacing: normal;
+            font-size: 0.9rem;
+            color: var(--text);
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 2rem 1.5rem;
+            }
+        }
+
+        label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            padding: 1rem;
+            color: var(--text);
+            border-radius: 4px;
+            font-family: var(--f-sans);
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        /* Floating WhatsApp */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 64px;
+            height: 64px;
+            background-color: #25d366;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 35px rgba(37, 211, 102, 0.4);
+            z-index: 1000;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .whatsapp-float svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        /* Animations */
+        /* Reveal Animation Logic */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            filter: blur(10px);
+            transition: opacity 1s cubic-bezier(0.16, 1, 0.3, 1), transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 1s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform, opacity, filter;
+        }
+
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 0;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .footer-col h4 {
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-col ul li a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .footer-col ul li a:hover {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .how-it-works-grid, .pricing-grid, .report-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .price-card.featured {
+                transform: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle { display: flex; }
+            .nav-links {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100dvh;
+                background: #12100e;
+                flex-direction: column;
+                justify-content: flex-start;
+                align-items: flex-start;
+                padding: 120px 8% 60px;
+                gap: 0;
+                transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+                transform: translateX(100%);
+                z-index: 2000;
+                overflow-y: auto;
+                box-sizing: border-box;
+            }
+
+            .nav-links.active {
+                transform: translateX(0);
+            }
+
+            .nav-item {
+                width: 100%;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .nav-link-wrapper {
+                padding: 1.25rem 0;
+            }
+
+            .nav-links a {
+                font-size: 1.4rem;
+                width: 100%;
+                justify-content: flex-start;
+                padding: 1.25rem 0;
+            }
+
+            .nav-item a {
+                padding: 0; /* Wrapper handles padding */
+            }
+
+            .dropdown-trigger {
+                display: flex;
+                padding: 0.5rem;
+                cursor: pointer;
+                pointer-events: all;
+            }
+
+            .dropdown-trigger.active {
+                transform: rotate(180deg);
+                color: var(--accent);
+            }
+
+            .dropdown {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                background: rgba(255,255,255,0.03);
+                border: none;
+                padding: 0;
+                text-align: left;
+                margin-top: 0;
+                display: none;
+                flex-direction: column;
+                gap: 0;
+                width: 100%;
+                box-shadow: none;
+                overflow: hidden;
+            }
+
+            .dropdown.active {
+                display: flex;
+            }
+
+            .dropdown a {
+                font-size: 1.1rem;
+                padding: 1.25rem 0;
+                color: var(--text-muted);
+                border-bottom: 1px solid rgba(255,255,255,0.05);
+                transition: var(--transition);
+            }
+
+            .dropdown a:hover {
+                color: var(--accent);
+                background: rgba(212, 175, 55, 0.05);
+                text-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+            }
+
+            .dropdown a:last-child {
+                border-bottom: none;
+            }
+
+            .mobile-cta {
+                display: block;
+                width: 100%;
+                margin-top: 3rem;
+                padding-bottom: 2rem;
+            }
+
+            .mobile-cta .btn {
+                width: 100%;
+                max-width: none;
+                padding: 1.8rem;
+                font-size: 1rem;
+                letter-spacing: 0.1em;
+            }
+
+            .nav-links > a:not(.btn) {
+                width: 100%;
+                padding: 1.25rem 0;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+                font-size: 1.4rem;
+            }
+
+            .how-it-works-grid, .pricing-grid, .report-grid, .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full { grid-column: auto; }
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1rem !important; }
+            section { padding: 6rem 0; }
+            .footer-content { flex-direction: column; gap: 3rem; }
+            .footer-links { flex-direction: column; gap: 2rem; }
+            
+            /* Fix header overlap on mobile */
+            .hero {
+                padding-top: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="spotlight"></div>
+
+    <!-- Floating WhatsApp -->
+    <a href="https://wa.me/8619047757781" class="whatsapp-float" target="_blank">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </a>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="container nav-content">
+            <div class="logo-group">
+                <a href="#" class="logo">supplytruth</a>
+                <span class="tagline" style="font-size: 0.55rem; white-space: nowrap;">Factory Verification and Sourcing in China</span>
+            </div>
+            <div class="menu-toggle" id="mobile-menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="nav-links" id="nav-links">
+                <div class="nav-item">
+                    <div class="nav-link-wrapper">
+                        <a href="#solutions">SERVICES</a>
+                        <span class="dropdown-trigger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+                    </div>
+                    <div class="dropdown">
+                        <a href="#solutions">VERIFICATION</a>
+                        <a href="#solutions">SOURCING</a>
+                    </div>
+                </div>
+                <a href="#how-it-works">PROCESS</a>
+                <div class="nav-item">
+                    <div class="nav-link-wrapper">
+                        <a href="#pricing">PRICING</a>
+                        <span class="dropdown-trigger"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+                    </div>
+                    <div class="dropdown">
+                        <a href="#pricing">VERIFICATION</a>
+                        <a href="#quote">SOURCING QUOTE</a>
+                    </div>
+                </div>
+                <a href="#report">REPORT</a>
+                <div class="mobile-cta">
+                    <a href="#quote" class="btn btn-primary">Get Started Now</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-video-container">
+            <img src="https://i.ibb.co/Q3wF7n8z/0412222-ezgif-com-optimize-1.gif" alt="Hero Background" referrerPolicy="no-referrer">
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="container">
+            <div class="hero-content">
+                <p class="tagline reveal" style="margin-bottom: 1rem;">The Importer's Shield</p>
+                <h1 class="reveal">Don't send a cent until you know they're genuine.</h1>
+                <p class="reveal" style="font-size: 1.2rem; line-height: 1.8; max-width: 600px;">You’re either overpaying for low quality goods or risking your capital on unverified factories. We bridge the gap between Western standards and Chinese reality with boots-on-the-ground verification.</p>
+                <div class="hero-btns reveal" style="margin-top: 3rem;">
+                    <a href="https://wa.me/8619047757781" class="btn btn-primary">Order a Visit</a>
+                    <a href="#pricing" class="btn btn-outline">View Pricing</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Solutions -->
+    <section id="solutions">
+        <div class="container">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+                <h2 class="reveal">WHAT WE DO</h2>
+                <p class="text-muted reveal">Whether you need to verify a single factory or optimize your entire procurement strategy, we provide the boots on the ground required for success in China.</p>
+            </div>
+            <div class="solutions-grid">
+                <div class="solution-card reveal">
+                    <div class="report-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h3>Factory Verification</h3>
+                    <p class="text-muted">Eliminate the risk of fraud. We perform unannounced on-site audits to verify legitimacy, capacity, and court records.</p>
+                    <p class="text-accent font-mono" style="margin: 1.5rem 0;">From $149 / Report</p>
+                    <a href="#pricing" class="btn btn-primary" style="width: 100%; margin-top: auto;">View Report Tiers</a>
+                </div>
+                <div class="solution-card reveal">
+                    <div class="report-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </div>
+                    <h3>Strategic Sourcing</h3>
+                    <p class="text-muted">Stop overpaying. We find the optimal quality-to-price ratio for bulk orders across all major categories.</p>
+                    <p class="text-accent font-mono" style="margin: 1.5rem 0;">Custom Quote Based</p>
+                    <a href="#quote" class="btn btn-primary" style="width: 100%; margin-top: auto;">Request Sourcing</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Slider -->
+    <div class="slider-container">
+        <div class="container" style="margin-bottom: 3rem; text-align: center;">
+            <p class="tagline reveal">Industry Expertise</p>
+            <h2 class="reveal">SPECIALIZED IN YOUR NICHE</h2>
+        </div>
+        <div class="slider-track">
+            <!-- Items -->
+            <div class="slider-item">
+                <img src="https://i.ibb.co/W4HP25rw/IMG-2644.jpg" alt="Electronics" referrerPolicy="no-referrer">
+                <span>Electronics</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/7JgHw8K8/IMG-0254-1.jpg" alt="Home & Garden" referrerPolicy="no-referrer">
+                <span>Home & Garden</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/VpVT1Rm8/IMG-0267-1.jpg" alt="Outdoor Gear" referrerPolicy="no-referrer">
+                <span>Outdoor Gear</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/S8FtSqZ/IMG-3259.jpg" alt="Apparel" referrerPolicy="no-referrer">
+                <span>Apparel</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/svtV81M9/IMG-0263-1.jpg" alt="Pet Accessories" referrerPolicy="no-referrer">
+                <span>Pet Accessories</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/9HtQq84X/IMG-0256.jpg" alt="Toys" referrerPolicy="no-referrer">
+                <span>Toys</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/23fb29f6/Image-20260412173534-330-21.jpg" alt="Vehicles" referrerPolicy="no-referrer">
+                <span>Vehicles</span>
+            </div>
+            <!-- Duplicate for infinite loop -->
+            <div class="slider-item">
+                <img src="https://i.ibb.co/W4HP25rw/IMG-2644.jpg" alt="Electronics" referrerPolicy="no-referrer">
+                <span>Electronics</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/7JgHw8K8/IMG-0254-1.jpg" alt="Home & Garden" referrerPolicy="no-referrer">
+                <span>Home & Garden</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/VpVT1Rm8/IMG-0267-1.jpg" alt="Outdoor Gear" referrerPolicy="no-referrer">
+                <span>Outdoor Gear</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/S8FtSqZ/IMG-3259.jpg" alt="Apparel" referrerPolicy="no-referrer">
+                <span>Apparel</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/svtV81M9/IMG-0263-1.jpg" alt="Pet Accessories" referrerPolicy="no-referrer">
+                <span>Pet Accessories</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/9HtQq84X/IMG-0256.jpg" alt="Toys" referrerPolicy="no-referrer">
+                <span>Toys</span>
+            </div>
+            <div class="slider-item">
+                <img src="https://i.ibb.co/23fb29f6/Image-20260412173534-330-21.jpg" alt="Vehicles" referrerPolicy="no-referrer">
+                <span>Vehicles</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trust Bar -->
+    <div class="trust-bar">
+        <div class="container trust-grid">
+            <div class="trust-item reveal">
+                <span class="value" style="font-weight: 800;">On-site Visits</span>
+                <span class="label">unannounced or announced</span>
+            </div>
+            <div class="trust-item reveal">
+                <span class="value">48 Hours</span>
+                <span class="label">Turnaround Time</span>
+            </div>
+            <div class="trust-item reveal">
+                <span class="value">20+ Media</span>
+                <span class="label">Photos & Video</span>
+            </div>
+            <div class="trust-item reveal">
+                <span class="value">PDF</span>
+                <span class="label">Digital Delivery</span>
+            </div>
+            <div class="trust-item reveal">
+                <span class="value">Secure</span>
+                <span class="label">Western Union</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <section id="how-it-works">
+        <div class="container">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+                <h2 class="reveal">PROCESS</h2>
+                <p class="text-muted reveal">Professional, transparent, and built for Western standards.</p>
+            </div>
+            
+            <div style="margin-top: 4rem;">
+                <h4 class="reveal" style="margin-bottom: 2rem; border-left: 3px solid var(--accent); padding-left: 1rem;">1. Factory Verification</h4>
+                <div class="how-it-works-grid">
+                    <div class="step-card reveal">
+                        <span class="step-num">01</span>
+                        <h3>Define Needs</h3>
+                        <p class="text-muted">Submit factory details and your specific concerns. We calculate transportation based on exact GPS distance.</p>
+                    </div>
+                    <div class="step-card reveal">
+                        <span class="step-num">02</span>
+                        <h3>The Audit</h3>
+                        <p class="text-muted">We perform announced or unannounced on-site visits to verify registration, worker headcount, and actual production capacity.</p>
+                    </div>
+                    <div class="step-card reveal">
+                        <span class="step-num">03</span>
+                        <h3>The Verdict</h3>
+                        <p class="text-muted">Receive a comprehensive PDF report with 20+ media files and a clear "Legitimacy Verdict" within 48 hours.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 6rem;">
+                <h4 class="reveal" style="margin-bottom: 2rem; border-left: 3px solid var(--accent); padding-left: 1rem;">2. Strategic Sourcing</h4>
+                <div class="how-it-works-grid">
+                    <div class="step-card reveal">
+                        <span class="step-num">01</span>
+                        <h3>Briefing</h3>
+                        <p class="text-muted">Send us your product specs, reference images, target quantity, and deadlines via WhatsApp or our form.</p>
+                    </div>
+                    <div class="step-card reveal">
+                        <span class="step-num">02</span>
+                        <h3>Market Scan</h3>
+                        <p class="text-muted">We leverage our local network to find the best ratio of quality vs. price, filtering out middle-men and trading companies.</p>
+                    </div>
+                    <div class="step-card reveal">
+                        <span class="step-num">03</span>
+                        <h3>Optimization</h3>
+                        <p class="text-muted">We present you with the top options, helping you save thousands by securing direct-from-factory pricing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" style="background: var(--surface);">
+        <div class="container">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+                <h2 class="reveal">PRICING</h2>
+                <p class="text-muted reveal">No hidden fees. Professional verification for every budget.</p>
+            </div>
+            <div class="pricing-grid">
+                <!-- Starter -->
+                <div class="price-card reveal">
+                    <h3>Starter</h3>
+                    <div class="price-amount">$149<span>/report</span></div>
+                    <ul class="price-features">
+                        <li>Basic On-site Visit</li>
+                        <li>10 High-res Photos</li>
+                        <li>Worker Count Verification</li>
+                        <li>72H Delivery</li>
+                    </ul>
+                    <a href="#quote" class="btn btn-outline">Select Starter</a>
+                </div>
+                <!-- Standard -->
+                <div class="price-card featured reveal">
+                    <h3>Standard</h3>
+                    <div class="price-amount">$269<span>/report</span></div>
+                    <ul class="price-features">
+                        <li>Everything in Starter</li>
+                        <li>Gov Registration Check</li>
+                        <li>Unannounced or announced visit</li>
+                        <li>20 Photos + 2 Videos</li>
+                        <li>Court Record Search</li>
+                        <li>48H Delivery</li>
+                    </ul>
+                    <a href="#quote" class="btn btn-primary">Select Standard</a>
+                </div>
+                <!-- Premium -->
+                <div class="price-card reveal">
+                    <h3>Premium</h3>
+                    <div class="price-amount">$369<span>/report</span></div>
+                    <ul class="price-features">
+                        <li>Everything in Standard</li>
+                        <li>Live Video Call from Factory</li>
+                        <li>Material Quality Check</li>
+                        <li>Priority Support</li>
+                        <li>24H Delivery</li>
+                    </ul>
+                    <a href="#quote" class="btn btn-outline">Select Premium</a>
+                </div>
+            </div>
+
+            <div class="addons-row reveal">
+                <div class="addon-item">
+                    <span class="font-mono text-accent">+$80</span>
+                    <span class="label">Urgent (24h)</span>
+                </div>
+                <div class="addon-item">
+                    <span class="font-mono text-accent">$189</span>
+                    <span class="label">Pre-shipment QC</span>
+                </div>
+                <div class="addon-item">
+                    <span class="font-mono text-accent">$599/mo</span>
+                    <span class="label">Retainer Pack</span>
+                </div>
+            </div>
+            <div class="text-muted font-mono reveal" style="margin-top: 2rem; text-align: center; line-height: 1.8;">
+                * Transportation fees not included and calculated transparently with trip.com.<br>
+                Note: Plane and train schedules or holidays can disrupt timelines, but we notify you transparently in real time.
+            </div>
+        </div>
+    </section>
+
+    <!-- Report Contents -->
+    <section id="report">
+        <div class="container">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+                <h2 class="reveal">REPORT</h2>
+                <p class="text-muted reveal">We don't just look around. We investigate every detail.</p>
+            </div>
+            <div class="report-grid">
+                <div class="report-card reveal">
+                    <div class="report-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    </div>
+                    <h3>Gov Records</h3>
+                    <p class="text-muted">Direct verification with the AIC (Administration for Industry and Commerce) to confirm legal existence and capital.</p>
+                </div>
+                <div class="report-card reveal">
+                    <div class="report-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    </div>
+                    <h3>Visual Proof</h3>
+                    <p class="text-muted">High-resolution photos and videos of the factory gate, production floor, and warehouse with date-stamps.</p>
+                </div>
+                <div class="report-card reveal">
+                    <div class="report-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.8.9"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <h3>Court Check</h3>
+                    <p class="text-muted">Deep dive into Chinese court records to identify any ongoing litigation or history of contract disputes.</p>
+                </div>
+                <div class="report-card reveal">
+                    <div class="report-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <h3>Worker Count</h3>
+                    <p class="text-muted">Manual head-count to verify if the factory size matches their claims on Alibaba/Global Sources.</p>
+                </div>
+                <div class="report-card reveal">
+                    <div class="report-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </div>
+                    <h3>Risk Assessment</h3>
+                    <p class="text-muted">A professional evaluation of potential red flags, from safety to financial stability.</p>
+                </div>
+                <div class="report-card reveal">
+                    <div class="report-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <h3>Clear Verdict</h3>
+                    <p class="text-muted">One final, unambiguous verdict: "Legitimate", "High Risk", or "Fraudulent".</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Premium Slideshow -->
+    <section class="slideshow-section">
+        <div class="container">
+            <div style="text-align: center; max-width: 800px; margin: 0 auto; margin-bottom: 4rem;">
+                <p class="tagline reveal">On-Site Reality</p>
+                <h2 class="reveal">Boots on the Ground</h2>
+                <p class="text-muted reveal" style="font-size: 1.2rem; margin-top: 1rem;">We are boots on the ground and are ready to work with you. Real footage from our daily operations across China's industrial heartlands.</p>
+            </div>
+        </div>
+        <div class="slideshow-wrapper">
+            <div class="slideshow-track">
+                <!-- Slide 1 -->
+                <div class="slide">
+                    <img src="https://i.ibb.co/7NvFq0K8/BOG1-ezgif-com-optimize.gif" alt="Boots on the Ground 1" referrerPolicy="no-referrer">
+                </div>
+                <!-- Slide 2 -->
+                <div class="slide">
+                    <img src="https://i.ibb.co/tM70hppB/BOG2-ezgif-com-optimize.gif" alt="Boots on the Ground 2" referrerPolicy="no-referrer">
+                </div>
+                <!-- Slide 3 -->
+                <div class="slide">
+                    <img src="https://i.ibb.co/CKmq0L4K/BOG3-ezgif-com-optimize.gif" alt="Boots on the Ground 3" referrerPolicy="no-referrer">
+                </div>
+                <!-- Slide 4 -->
+                <div class="slide">
+                    <img src="https://i.ibb.co/JRpshQr1/BOG4-ezgif-com-optimize.gif" alt="Boots on the Ground 4" referrerPolicy="no-referrer">
+                </div>
+                <!-- Slide 5 -->
+                <div class="slide">
+                    <img src="https://i.ibb.co/My904DqS/BOG5-ezgif-com-optimize-1.gif" alt="Boots on the Ground 5" referrerPolicy="no-referrer">
+                </div>
+                <!-- Duplicates for infinite loop -->
+                <div class="slide">
+                    <img src="https://i.ibb.co/7NvFq0K8/BOG1-ezgif-com-optimize.gif" alt="Boots on the Ground 1" referrerPolicy="no-referrer">
+                </div>
+                <div class="slide">
+                    <img src="https://i.ibb.co/tM70hppB/BOG2-ezgif-com-optimize.gif" alt="Boots on the Ground 2" referrerPolicy="no-referrer">
+                </div>
+                <div class="slide">
+                    <img src="https://i.ibb.co/CKmq0L4K/BOG3-ezgif-com-optimize.gif" alt="Boots on the Ground 3" referrerPolicy="no-referrer">
+                </div>
+                <div class="slide">
+                    <img src="https://i.ibb.co/JRpshQr1/BOG4-ezgif-com-optimize.gif" alt="Boots on the Ground 4" referrerPolicy="no-referrer">
+                </div>
+                <div class="slide">
+                    <img src="https://i.ibb.co/My904DqS/BOG5-ezgif-com-optimize-1.gif" alt="Boots on the Ground 5" referrerPolicy="no-referrer">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Coverage -->
+    <section id="coverage">
+        <div class="container">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+                <h2 class="reveal">Coverage Zones</h2>
+                <p class="text-muted reveal">We cover the heart of China's manufacturing hubs in the Pearl River Delta and beyond.</p>
+            </div>
+            <div class="coverage-list reveal">
+                <span class="city-tag">Guangzhou</span>
+                <span class="city-tag">Shenzhen</span>
+                <span class="city-tag">Dongguan</span>
+                <span class="city-tag">Foshan</span>
+                <span class="city-tag">Zhongshan</span>
+                <span class="city-tag">Yiwu</span>
+                <span class="city-tag">Huizhou</span>
+                <span class="city-tag">Jiangmen</span>
+                <span class="city-tag">Zhaoqing</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote Form -->
+    <section id="quote" style="background: var(--surface);">
+        <div class="container">
+            <div style="text-align: center; max-width: 700px; margin: 0 auto;">
+                <h2 class="reveal">Request a Verification or a Sourcing</h2>
+                <p class="text-muted reveal">Fill out the details below and we'll get back to you with a final quote including transportation.</p>
+            </div>
+            <div class="form-container reveal">
+                <form id="verificationForm">
+                    <div class="form-grid">
+                        <div class="form-group full">
+                            <label>Request Type</label>
+                            <select id="requestType" required>
+                                <option value="Verification">Factory Verification</option>
+                                <option value="Sourcing">Strategic Sourcing Inquiry</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name / Company Name</label>
+                            <input type="text" id="name" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" id="email" placeholder="john@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Factory Name / Product Category</label>
+                            <input type="text" id="factory" placeholder="Shenzhen Tech Ltd / Electronics" required>
+                        </div>
+                        <div class="form-group">
+                            <label>City / Region</label>
+                            <input type="text" id="city" placeholder="Shenzhen" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Type / Details</label>
+                            <input type="text" id="product" placeholder="Specific models or requirements" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Order Value ($)</label>
+                            <input type="number" id="value" placeholder="5000" min="0" required>
+                        </div>
+                        <div class="form-group full" id="tier-selection">
+                            <label>Select Verification Tier (If applicable)</label>
+                            <select id="tier">
+                                <option value="N/A">Not Applicable (Sourcing)</option>
+                                <option value="Starter">Starter - $149</option>
+                                <option value="Standard">Standard - $269</option>
+                                <option value="Premium">Premium - $369</option>
+                            </select>
+                        </div>
+                        <div class="form-group full checkbox-group">
+                            <input type="checkbox" id="updatesAccepted">
+                            <label for="updatesAccepted">I agree to receive email updates and promotions about verification services or product sourcing</label>
+                        </div>
+                        <div class="form-group full" style="margin-top: 1rem;">
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Submit & Open WhatsApp</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section>
+        <div class="container" style="text-align: center;">
+            <p class="reveal" style="font-size: 1rem; margin-bottom: 2rem; color: var(--text-muted); font-weight: 400; letter-spacing: 0.02em;">Check your supplier or inspect your goods before shipping</p>
+            <div class="reveal">
+                <a href="https://wa.me/8619047757781" class="btn btn-primary" style="padding: 1.5rem 3rem; font-size: 1.2rem;">Chat with us on WhatsApp</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-col">
+                <div class="logo-group">
+                    <a href="#" class="logo">supplytruth</a>
+                    <span class="tagline" style="font-size: 0.55rem; white-space: nowrap;">Factory Verification and Sourcing in China</span>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div class="footer-col">
+                    <ul style="list-style: none;">
+                        <li><a href="#" style="color: var(--text-muted); text-decoration: none;">HOME</a></li>
+                        <li><a href="#solutions" style="color: var(--text-muted); text-decoration: none;">SERVICES</a></li>
+                        <li><a href="#how-it-works" style="color: var(--text-muted); text-decoration: none;">PROCESS</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <ul style="list-style: none;">
+                        <li><a href="#pricing" style="color: var(--text-muted); text-decoration: none;">PRICING</a></li>
+                        <li><a href="#report" style="color: var(--text-muted); text-decoration: none;">REPORT</a></li>
+                        <li><a href="https://wa.me/8619047757781" style="color: var(--text-muted); text-decoration: none;">CONTACT US</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="container" style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid var(--border); text-align: center;">
+            <p class="text-muted" style="font-size: 0.75rem;">&copy; 2026 SupplyTruth. All rights reserved. Professional verification services.</p>
+        </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <button id="back-to-top" class="btn btn-outline" style="position: fixed; bottom: 30px; left: 30px; padding: 0; border-radius: 50%; width: 50px; height: 50px; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; border: 1px solid var(--border); background: rgba(18, 16, 14, 0.8); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
+    </button>
+
+    <script>
+        // Back to top logic
+        const backToTop = document.getElementById('back-to-top');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 500) {
+                backToTop.style.opacity = '1';
+                backToTop.style.pointerEvents = 'all';
+            } else {
+                backToTop.style.opacity = '0';
+                backToTop.style.pointerEvents = 'none';
+            }
+        });
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Spotlight effect
+        const spotlight = document.getElementById('spotlight');
+        const updateSpotlight = e => {
+            const x = e.clientX || (e.touches && e.touches[0].clientX);
+            const y = e.clientY || (e.touches && e.touches[0].clientY);
+            if (x && y) {
+                spotlight.style.setProperty('--x', x + 'px');
+                spotlight.style.setProperty('--y', y + 'px');
+            }
+        };
+        window.addEventListener('mousemove', updateSpotlight);
+        window.addEventListener('touchmove', updateSpotlight);
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        // Staggered Reveal Animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // If it's a grid, stagger children
+                    if (entry.target.classList.contains('solutions-grid') || 
+                        entry.target.classList.contains('how-it-works-grid') || 
+                        entry.target.classList.contains('pricing-grid') || 
+                        entry.target.classList.contains('report-grid')) {
+                        const children = entry.target.querySelectorAll('.reveal');
+                        children.forEach((child, index) => {
+                            setTimeout(() => {
+                                child.classList.add('active');
+                            }, index * 150);
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal, .solutions-grid, .how-it-works-grid, .pricing-grid, .report-grid').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Magnetic Buttons
+        const magneticBtns = document.querySelectorAll('.btn');
+        magneticBtns.forEach(btn => {
+            btn.addEventListener('mousemove', e => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = `translate(0, 0)`;
+            });
+        });
+
+        // Mobile Menu Logic
+        const mobileMenu = document.getElementById('mobile-menu');
+        const navLinks = document.getElementById('nav-links');
+        const dropdownTriggers = document.querySelectorAll('.dropdown-trigger');
+
+        mobileMenu.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            navLinks.classList.toggle('active');
+            // Prevent body scroll when menu is open
+            document.body.style.overflow = navLinks.classList.contains('active') ? 'hidden' : 'auto';
+        });
+
+        // Accordion logic for mobile
+        dropdownTriggers.forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
+                if (window.innerWidth <= 1024) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const dropdown = trigger.closest('.nav-item').querySelector('.dropdown');
+                    trigger.classList.toggle('active');
+                    dropdown.classList.toggle('active');
+                }
+            });
+        });
+
+        // Close menu when clicking outside or hitting Escape
+        document.addEventListener('click', (e) => {
+            if (navLinks.classList.contains('active') && !navLinks.contains(e.target) && !mobileMenu.contains(e.target)) {
+                mobileMenu.click();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+                mobileMenu.click();
+            }
+        });
+
+        // Close menu when clicking a link (that isn't a dropdown trigger)
+        const navItems = document.querySelectorAll('.nav-links a');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                navLinks.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+        });
+
+        // Pricing selection logic
+        const priceBtns = document.querySelectorAll('.price-card .btn');
+        priceBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const card = btn.closest('.price-card');
+                const tierName = card.querySelector('h3').innerText;
+                
+                // Set form values
+                document.getElementById('requestType').value = 'Verification';
+                document.getElementById('tier').value = tierName;
+                document.getElementById('tier-selection').style.display = 'block';
+                
+                // Add highlight effect to form
+                const formContainer = document.querySelector('.form-container');
+                formContainer.style.borderColor = 'var(--accent)';
+                formContainer.style.boxShadow = '0 0 30px var(--accent-glow)';
+                
+                setTimeout(() => {
+                    formContainer.style.borderColor = 'var(--border)';
+                    formContainer.style.boxShadow = '0 20px 40px rgba(0,0,0,0.2)';
+                }, 2000);
+            });
+        });
+
+        // Form logic for dynamic request type
+        const requestType = document.getElementById('requestType');
+        const tierSelection = document.getElementById('tier-selection');
+
+        requestType.addEventListener('change', () => {
+            if (requestType.value === 'Sourcing') {
+                tierSelection.style.display = 'none';
+            } else {
+                tierSelection.style.display = 'block';
+            }
+        });
+
+        // Form submission logic
+        const submitBtn = document.querySelector('#verificationForm button[type="submit"]');
+        
+        document.getElementById('verificationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.innerText = "Formatting Quote...";
+            submitBtn.disabled = true;
+            
+            const type = document.getElementById('requestType').value;
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const factory = document.getElementById('factory').value;
+            const city = document.getElementById('city').value;
+            const product = document.getElementById('product').value;
+            const rawValue = document.getElementById('value').value;
+            const value = Math.max(0, Number(rawValue));
+            const tier = document.getElementById('tier').value;
+            const updatesAccepted = document.getElementById('updatesAccepted').checked ? "Yes" : "No";
+
+            const emoji = type === 'Verification' ? '🛡️' : '🔍';
+            
+            let message = `*${type} Inquiry* ${emoji}\n\n`;
+            
+            message += `*CLIENT DETAILS:*\n`;
+            message += `• Name/Company: ${name}\n`;
+            message += `• Email: ${email}\n\n`;
+            
+            message += `*TARGET FACTORY:*\n`;
+            message += `• Factory: ${factory}\n`;
+            message += `• Location: ${city}\n`;
+            message += `• Product: ${product}\n\n`;
+            
+            message += `*ORDER PROFILE:*\n`;
+            message += `• Est. Value: $${value.toLocaleString()}\n`;
+            if (type === 'Verification') {
+                message += `• Service Tier: ${tier}\n`;
+            }
+            
+            message += `\n*MARKETING:*\n`;
+            message += `• Newsletter Opt-in: ${updatesAccepted}\n\n`;
+            
+            message += `-------------------\n`;
+            message += `_Generated by SupplyTruth_`;
+            
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/8619047757781?text=${encodedMessage}`;
+            
+            setTimeout(() => {
+                window.open(whatsappUrl, '_blank');
+                submitBtn.innerText = "Redirected to WhatsApp";
+                setTimeout(() => {
+                    submitBtn.innerText = originalBtnText;
+                    submitBtn.disabled = false;
+                }, 2000);
+            }, 800);
+        });
+    </script>
+</body>
+</html>
